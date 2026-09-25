@@ -97,6 +97,25 @@ Python 3, ffmpeg and Google Chrome; `render.sh` installs `puppeteer-core` into
 `FIRECRAWL_API_KEY` in your environment. The approved reference build is
 `code-motion/examples/jev-20260926/index.html` (source only; its third-party assets aren't shipped).
 
+## Both versions from one voiceover
+
+`both/` is a small third skill, `jack-motion-both`, that runs both engines on the same VO.
+It asks for the audio file, transcribes it once, scaffolds a Remotion project and a
+code-motion project with the same transcript and CTA cut, then builds and renders a
+caption-free MP4 from each engine.
+
+```bash
+ln -s ~/.claude/skills/jack-remotion-motion/code-motion ~/.claude/skills/jack-code-motion   # if not done
+ln -s ~/.claude/skills/jack-remotion-motion/both ~/.claude/skills/jack-motion-both
+```
+
+Restart Claude Code and ask for "both versions" (with or without a file). Claude asks for
+the voiceover first. To scaffold by hand (it prompts for the file if you leave it out):
+
+```bash
+python3 ~/.claude/skills/jack-remotion-motion/scripts/both.py ~/Downloads/vo.mp3
+```
+
 ## The house rules (enforced by `scripts/check_build.py`)
 
 1. **One idea, one visual, one cut.** About 2.2s per beat.
@@ -121,8 +140,9 @@ references/       workflow · template selection · design system · devices · 
                   transition speed ramp · asset sourcing · SFX workflow · orange scene
 starter/          the Remotion project every build copies (kit, devices, 26 templates,
                   mascots, demo beats, logos, SFX)
-scripts/          new_project · transcribe · plan_beats · check_build · render · sheet ·
+scripts/          both · new_project · transcribe · plan_beats · check_build · render · sheet ·
                   safe_sheet · remotion_sfx · fetch_logo · broll_fetch · broll_pick · doctor
+both/             jack-motion-both: one VO → Remotion + code-motion builds
 assets/           logos, SFX, Clawd mascot sources + tools (fetch_tenor.py, key_gif.py, gen.js)
 ```
 
