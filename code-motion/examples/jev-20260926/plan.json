@@ -1,0 +1,208 @@
+{
+ "vo": "assets/vo.wav",
+ "vo_gain": 1.0,
+ "end": 1073,
+ "cta_cut_s": 35.77,
+ "sfx": [
+  {
+   "f": 0,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 45,
+   "file": "assets/sfx/click-soft.mp3",
+   "gain": 0.026
+  },
+  {
+   "f": 54,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 72,
+   "file": "assets/sfx/click-soft.mp3",
+   "gain": 0.026
+  },
+  {
+   "f": 89,
+   "file": "assets/sfx/whoosh.mp3",
+   "gain": 0.026
+  },
+  {
+   "f": 130,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 162,
+   "file": "assets/sfx/click.mp3",
+   "gain": 0.028
+  },
+  {
+   "f": 180,
+   "file": "assets/sfx/click.mp3",
+   "gain": 0.028
+  },
+  {
+   "f": 202,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 230,
+   "file": "assets/sfx/click.mp3",
+   "gain": 0.03
+  },
+  {
+   "f": 244,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 249,
+   "file": "assets/sfx/click-soft.mp3",
+   "gain": 0.024
+  },
+  {
+   "f": 253,
+   "file": "assets/sfx/click-soft.mp3",
+   "gain": 0.024
+  },
+  {
+   "f": 257,
+   "file": "assets/sfx/click-soft.mp3",
+   "gain": 0.024
+  },
+  {
+   "f": 292,
+   "file": "assets/sfx/click.mp3",
+   "gain": 0.028
+  },
+  {
+   "f": 333,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 404,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 449,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 461,
+   "file": "assets/sfx/click-soft.mp3",
+   "gain": 0.026
+  },
+  {
+   "f": 485,
+   "file": "assets/sfx/click.mp3",
+   "gain": 0.028
+  },
+  {
+   "f": 499,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 505,
+   "file": "assets/sfx/click-soft.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 517,
+   "file": "assets/sfx/click-soft.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 529,
+   "file": "assets/sfx/click-soft.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 553,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 567,
+   "file": "assets/sfx/click.mp3",
+   "gain": 0.026
+  },
+  {
+   "f": 588,
+   "file": "assets/sfx/click.mp3",
+   "gain": 0.026
+  },
+  {
+   "f": 608,
+   "file": "assets/sfx/click.mp3",
+   "gain": 0.026
+  },
+  {
+   "f": 619,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 653,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.026
+  },
+  {
+   "f": 680,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 765,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 789,
+   "file": "assets/sfx/click.mp3",
+   "gain": 0.03
+  },
+  {
+   "f": 900,
+   "file": "assets/sfx/click.mp3",
+   "gain": 0.028
+  },
+  {
+   "f": 925,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 933,
+   "file": "assets/sfx/whoosh.mp3",
+   "gain": 0.024
+  },
+  {
+   "f": 957,
+   "file": "assets/sfx/click.mp3",
+   "gain": 0.028
+  },
+  {
+   "f": 1011,
+   "file": "assets/sfx/click.mp3",
+   "gain": 0.028
+  },
+  {
+   "f": 1046,
+   "file": "assets/sfx/whoosh-short.mp3",
+   "gain": 0.022
+  },
+  {
+   "f": 1050,
+   "file": "assets/sfx/click.mp3",
+   "gain": 0.03
+  }
+ ]
+}

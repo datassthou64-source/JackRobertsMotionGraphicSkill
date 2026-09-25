@@ -4,3 +4,4 @@ out/
 __pycache__/
 *.pyc
 .DS_Store
+code-motion/engine/node_modules/

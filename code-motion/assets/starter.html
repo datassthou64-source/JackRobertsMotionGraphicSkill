@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>code-motion</title>
+<style>
+/* Fonts: the brand's own face if it is free (drop the woff2 in assets/fonts), else these OFL stand-ins */
+@font-face{font-family:Mono;src:url(assets/fonts/jetbrains-mono-latin-500-normal.woff2);font-weight:500}
+@font-face{font-family:Mono;src:url(assets/fonts/jetbrains-mono-latin-700-normal.woff2);font-weight:700}
+@font-face{font-family:Grot;src:url(assets/fonts/inter-tight-latin-500-normal.woff2);font-weight:500}
+@font-face{font-family:Grot;src:url(assets/fonts/inter-tight-latin-600-normal.woff2);font-weight:600}
+/* Brand tokens — replace from assets/brand/<name>.json (fetch_brand.py). One accent per beat. */
+:root{--bg:#FEFEFE;--ink:#1E1E1E;--accent:#F386A1}
+html,body{margin:0;background:#000}
+*{box-sizing:border-box}
+section{font-family:Grot,Helvetica,sans-serif;color:var(--ink)}
+.abs{position:absolute}
+.g-paper{background:var(--bg) radial-gradient(rgba(30,30,30,.16) 1.7px,transparent 2px) 0 0/36px 36px}
+.g-dark{background:#141414}
+.g-accent{background:var(--accent)}
+</style>
+<script src="runtime.js"></script>
+<script src="kit.js"></script>
+</head>
+<body>
+<script>
+const { h, tw, E, lerp, clamp, rng, scene, px, place, cursor, press, typed } = CM;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function ground(cam, cls) { const g = h('div', { class: 'abs ' + cls, style: { inset: '-200px' } }); cam.append(g); return g; }
+// CM.preload(['assets/media/a.jpg', ...])  — list every image used as a CSS background
+
+/* B1 0–60 "<the words this beat illustrates>" — one idea, one object, a real action.
+   Frames: start = first word's start × 30. Safe zone x120–960 y240–1540; keep y1180–1295 empty. */
+scene({ id: 'b1', start: 0, end: 60, ramp: { scale: [1.3, 1] },
+  build(cam) {
+    ground(cam, 'g-paper');
+    const card = h('div', { class: 'abs', style: { left: '190px', top: '470px', width: '700px', height: '340px', background: '#fff', border: '3px solid var(--ink)', font: '600 96px/334px Grot', textAlign: 'center' } });
+    cam.append(card);
+    return { card };
+  },
+  render(f, s) {
+    s.card.textContent = typed(f, 6, 24, 'replace me') + (f % 12 < 7 ? '▌' : ' ');
+  } });
+</script>
+</body>
+</html>

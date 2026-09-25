@@ -1,0 +1,7 @@
+{
+  "name": "jack-code-motion-engine",
+  "private": true,
+  "type": "module",
+  "description": "Frame-exact renderer for code-motion compositions (headless Chrome + ffmpeg)",
+  "dependencies": { "puppeteer-core": "^24.0.0" }
+}

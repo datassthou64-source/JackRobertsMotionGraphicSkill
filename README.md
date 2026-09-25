@@ -74,6 +74,29 @@ With no voiceover yet, run `new_project.py <slug> --seconds 30` for a silent mas
 { "projects_dir": "/path/to/remotion-projects", "node_modules": "/path/to/an/existing/node_modules" }
 ```
 
+## Alternative engine: code-motion (no Remotion, no HyperFrames)
+
+`code-motion/` is a second, self-contained skill: every beat is free-form browser code
+(HTML / SVG / canvas / WebGL) written for that one idea, branded from the product's own site
+with Firecrawl, and rendered frame-exact by headless Chrome + ffmpeg. More creative freedom
+than a template library, the same house rules (hard cuts + speed ramp, flat 2D, safe zone, no
+captions, end before the CTA). A 36s reel renders in about 13 seconds.
+
+```bash
+ln -s ~/.claude/skills/jack-remotion-motion/code-motion ~/.claude/skills/jack-code-motion
+S=~/.claude/skills/jack-code-motion/scripts
+python3 $S/new_project.py my-video-20260926 --vo ~/Downloads/vo.mp3 --transcribe
+# write the beats in code-motion-projects/my-video-20260926/index.html, then:
+node $S/../engine/render.mjs code-motion-projects/my-video-20260926 --sheet --guides   # 4s review sheet
+bash $S/render.sh code-motion-projects/my-video-20260926 my-video                     # gates → MP4 → sheet
+```
+
+Restart Claude Code and ask for "code-motion motion graphics for this VO". Needs Node 18+,
+Python 3, ffmpeg and Google Chrome; `render.sh` installs `puppeteer-core` into
+`code-motion/engine/` on first run. Branding uses `scripts/fetch_brand.py` with a
+`FIRECRAWL_API_KEY` in your environment. The approved reference build is
+`code-motion/examples/jev-20260926/index.html` (source only; its third-party assets aren't shipped).
+
 ## The house rules (enforced by `scripts/check_build.py`)
 
 1. **One idea, one visual, one cut.** About 2.2s per beat.

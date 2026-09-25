@@ -1,0 +1,572 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Jev — code-motion</title>
+<style>
+@font-face{font-family:Mono;src:url(assets/fonts/jetbrains-mono-latin-500-normal.woff2);font-weight:500}
+@font-face{font-family:Mono;src:url(assets/fonts/jetbrains-mono-latin-700-normal.woff2);font-weight:700}
+@font-face{font-family:Grot;src:url(assets/fonts/inter-tight-latin-500-normal.woff2);font-weight:500}
+@font-face{font-family:Grot;src:url(assets/fonts/inter-tight-latin-600-normal.woff2);font-weight:600}
+html,body{margin:0;background:#000}
+*{box-sizing:border-box}
+section{font-family:Grot,Helvetica,sans-serif;color:#1E1E1E}
+.abs{position:absolute}
+/* TypeSafe window language: square corners, 3px ink border, black title bar, hard offset shadow */
+.win{position:absolute;background:#FEFEFE;border:3px solid #1E1E1E;box-shadow:16px 16px 0 rgba(30,30,30,.2)}
+.win>.bar{height:48px;background:#1E1E1E;color:#FEFEFE;font:500 24px/48px Mono,monospace;padding:0 16px;display:flex;justify-content:space-between;white-space:nowrap}
+.win>.bar i{font-style:normal;letter-spacing:6px;opacity:.9}
+.win>.body{position:absolute;left:0;right:0;top:48px;bottom:0;overflow:hidden}
+.tag{position:absolute;background:#F386A1;color:#1E1E1E;border:3px solid #1E1E1E;font:700 34px/1 Mono,monospace;padding:12px 16px;white-space:nowrap}
+.mono{font-family:Mono,monospace}
+.reel{position:absolute;background-size:cover;background-position:center;border:3px solid #1E1E1E}
+.g-paper{background:#FEFEFE radial-gradient(rgba(30,30,30,.16) 1.7px,transparent 2px) 0 0/36px 36px}
+.g-dark{background:#141414 radial-gradient(rgba(243,134,161,.18) 1.7px,transparent 2px) 0 0/36px 36px}
+.g-pink{background:#F386A1}
+</style>
+<script src="runtime.js"></script>
+</head>
+<body>
+<script>
+const {h, tw, E, lerp, clamp, rng, canvas, scene} = CM;
+const PINK = '#F386A1', INK = '#1E1E1E', PAPER = '#FEFEFE';
+// Hormozi's YouTube Shorts (cross-posted from IG), in channel order, with real view counts
+const R = 'xFR3PI3R-8M dlJ5TO3ODTE WrCrxXiIcFw NJA6YfGJPYY daDJcOTtF40 Zt9z4YiKryQ kjbX6J43Mks yQ7o6he_vZk Txg2V7uORa8 fqkZaOboNTs 5dPg0cSY9GY jp2CBEY8Xto OpQUTowN9n0 4tl8v6EM4DY 1XB3pPyGhdk NOVU_vdTI3A X40CFKO3wD8 9ImUcdPKwF4 59GCF4ETu_w THHFAU7PSu8 _0g9Kzc35jA XvCcbm9kxuY 91N0bY-8Bio b4x_V4Ov6GQ DefPNPnhBRI _iGfsFrMsrw YDnSaiu1bGw AvmGJNMgrxY xUC_8FjsJfU xYPf2mrOSSo'.split(' ');
+const src = i => `assets/reels/${R[i]}.jpg`;
+const px = v => v + 'px';
+const place = (el, x, y, w, hh) => Object.assign(el.style, { left: px(x), top: px(y), ...(w != null && { width: px(w) }), ...(hh != null && { height: px(hh) }) });
+const reel = (i, x, y, w) => { const e = h('div', { class: 'reel' }); e.style.backgroundImage = `url(${src(i)})`; place(e, x, y, w, w * 16 / 9); return e; };
+function win(parent, { x, y, w, hh, title, right = '▪ ▪ ▪' }) {
+  const body = h('div', { class: 'body' });
+  const el = h('div', { class: 'win' }, h('div', { class: 'bar' }, h('span', {}, title), h('i', {}, right)), body);
+  place(el, x, y, w, hh); parent.append(el);
+  return { el, body };
+}
+function ground(cam, cls) { const g = h('div', { class: 'abs ' + cls, style: { inset: '-200px' } }); cam.append(g); return g; }
+// the site's hero texture: ink halftone clouds on pink, deterministic
+function halftone(cam, seed, blobs, step = 18) {
+  const ctx = canvas(cam, 1480, 2320, { left: '-200px', top: '-200px' });
+  ctx.fillStyle = PINK; ctx.fillRect(0, 0, 1480, 2320);
+  const r = rng(seed); ctx.fillStyle = INK;
+  for (let y = 0; y < 2320; y += step) for (let x = (y / step) % 2 ? step / 2 : 0; x < 1480; x += step) {
+    let v = 0;
+    for (const [bx, by, br] of blobs) { const d = Math.hypot(x - 200 - bx, y - 200 - by) / br; v += Math.exp(-d * d * 2.2); }
+    v = clamp(v + (r() - .5) * .18);
+    const rad = v * step * .5;
+    if (rad > .6) { ctx.beginPath(); ctx.arc(x, y, rad, 0, 7); ctx.fill(); }
+  }
+  return ctx;
+}
+function cursor(parent) {
+  const el = h('div', { class: 'abs', style: { width: '64px', height: '64px', zIndex: 50 } });
+  el.innerHTML = '<svg width="64" height="64" viewBox="0 0 32 32"><path d="M6 3v22l6-6 4 9 4-2-4-9h8z" fill="#1E1E1E" stroke="#FEFEFE" stroke-width="2" stroke-linejoin="round"/></svg>';
+  parent.append(el);
+  el.set = (x, y, press = 0) => { el.style.left = px(x); el.style.top = px(y); el.style.transform = `scale(${1 - press * .14})`; };
+  return el;
+}
+const press = (f, at) => f < at ? 0 : f < at + 3 ? tw(f, at, 3, E.lin) : f < at + 8 ? 1 - tw(f, at + 3, 5) : 0;
+const fmtK = v => v >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : Math.round(v / 1e3) + 'K';
+
+/* B1 0–54 "Someone just gave this new AI model" — the site's own loader, filling */
+scene({ id: 'loader', start: 0, end: 54, ramp: { scale: [1.35, 1] },
+  build(cam) {
+    ground(cam, 'g-paper');
+    const w = win(cam, { x: 150, y: 470, w: 780, hh: 380, title: 'TypeSafeAI 1.1' });
+    const label = h('div', { class: 'abs mono', style: { left: '36px', top: '48px', font: '500 40px Mono' } }, 'Loading model');
+    const track = h('div', { class: 'abs', style: { left: '36px', top: '150px', width: '640px', height: '72px', border: '3px solid #1E1E1E' } });
+    const fill = h('div', { class: 'abs', style: { left: '6px', top: '6px', bottom: '6px', background: PINK } });
+    const pct = h('div', { class: 'abs mono', style: { left: '36px', top: '248px', font: '700 44px Mono' } });
+    track.append(fill); w.body.append(label, track, pct);
+    return { fill, pct };
+  },
+  render(f, s) {
+    const p = tw(f, 3, 42, E.inOut);
+    const blocks = Math.round(p * 20);                       // stepped, like the site's bar
+    s.fill.style.width = px(blocks * 31);
+    s.pct.textContent = Math.round(p * 100) + '%';
+  } });
+
+/* B2 54–90 "Alex Hormozi's" — halftone portrait resolving to the real frame */
+const portrait = new Image(); portrait.src = src(28);
+// background-image reels are not in document.images — decode every asset before frame 0
+CM.preload = () => Promise.all([portrait, ...R.map((_, i) => Object.assign(new Image(), { src: src(i) })), ...Array.from({ length: 14 }, (_, i) => Object.assign(new Image(), { src: `assets/clip/f${String(i + 1).padStart(2, '0')}.jpg` }))].map(i => i.decode().catch(() => {})));
+scene({ id: 'hormozi', start: 54, end: 90, ramp: { x: [0, 0], y: [260, 0], scale: [1.12, 1] },
+  build(cam) {
+    halftone(cam, 7, [[80, 300, 420], [1000, 1500, 520], [950, 200, 260]]);
+    const w = win(cam, { x: 200, y: 250, w: 680, hh: 860, title: '@hormozi', right: '▪ ▪' });
+    const ctx = canvas(w.body, 674, 806);
+    const off = document.createElement('canvas'); off.width = 674; off.height = 806;
+    return { ctx, off };
+  },
+  render(f, s) {
+    const { ctx, off } = s; const W = 674, H = 806;
+    // crop of the reel frame around his face
+    const crop = [150, 60, 780, 932];
+    const o = off.getContext('2d');
+    if (f < 18) {
+      const c = Math.round(lerp(46, 12, tw(f, 0, 18)));
+      const cw = Math.ceil(W / c), ch = Math.ceil(H / c);
+      o.drawImage(portrait, ...crop, 0, 0, cw, ch);
+      const d = o.getImageData(0, 0, cw, ch).data;
+      ctx.fillStyle = PINK; ctx.fillRect(0, 0, W, H); ctx.fillStyle = INK;
+      for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) {
+        const k = (j * cw + i) * 4, lum = (d[k] * .3 + d[k + 1] * .59 + d[k + 2] * .11) / 255;
+        const r = (1 - lum) * c * .62;
+        if (r > .5) { ctx.beginPath(); ctx.arc(i * c + c / 2, j * c + c / 2, r, 0, 7); ctx.fill(); }
+      }
+    } else {
+      const c = Math.max(1, Math.round(lerp(12, 1, tw(f, 18, 8))));
+      ctx.imageSmoothingEnabled = c === 1;
+      if (c > 1) { o.drawImage(portrait, ...crop, 0, 0, Math.ceil(W / c), Math.ceil(H / c)); ctx.drawImage(off, 0, 0, Math.ceil(W / c), Math.ceil(H / c), 0, 0, W, H); }
+      else ctx.drawImage(portrait, ...crop, 0, 0, W, H);
+    }
+  } });
+
+/* B3 89–130 "entire Instagram" — the account bursts out into a wall of reels */
+scene({ id: 'insta-wall', start: 89, end: 130, ramp: { scale: [0.72, 1] },
+  build(cam) {
+    ground(cam, 'g-paper');
+    const tiles = [];
+    const cols = 6, tw_ = 196, th = 348, gap = 14;
+    for (let j = 0; j < 6; j++) for (let i = 0; i < cols; i++) {
+      const x = -84 + i * (tw_ + gap), y = -130 + j * (th + gap) + (i % 2) * 80;
+      const e = reel((j * cols + i) % 30, x, y, tw_);
+      e.style.borderWidth = '2px';
+      cam.append(e);
+      tiles.push({ e, x, y, d: Math.hypot(x + tw_ / 2 - 540, y + th / 2 - 700) });
+    }
+    // the mark alone on the wall — no tile, a soft shadow keeps it off the busy thumbnails
+    const tile = h('img', { src: 'assets/logos/instagram.svg', class: 'abs', style: { left: '355px', top: '515px', width: '370px', zIndex: 5, filter: 'drop-shadow(0 30px 50px rgba(0,0,0,.45))' } });
+    cam.append(tile);
+    return { tiles };
+  },
+  render(f, s) {
+    for (const t of s.tiles) {
+      const p = tw(f, 4 + t.d / 70, 9);
+      const dx = (540 - t.x - 98) * (1 - p), dy = (700 - t.y - 174) * (1 - p);
+      t.e.style.transform = `translate(${dx}px,${dy}px) scale(${lerp(0.2, 1, p)})`;
+      t.e.style.visibility = p > 0.01 ? 'visible' : 'hidden';
+    }
+  } });
+
+/* B4 130–202 "broke down every hook and every structure" — the reel on an edit timeline, bladed */
+const PEAKS = JSON.parse(`[0.433, 0.353, 0.368, 0.344, 0.408, 0.376, 0.495, 0.478, 0.476, 0.321, 0.387, 0.509, 0.307, 0.586, 0.272, 0.601, 0.476, 1.0, 0.401, 0.351, 0.483, 0.612, 0.317, 0.622, 0.615, 0.509, 0.549, 0.516, 0.585, 0.633, 0.749, 0.674, 0.414, 0.444, 0.427, 0.301, 0.234, 0.141, 0.197, 0.435, 0.725, 0.375, 0.768, 0.551, 0.33, 0.361, 0.492, 0.611, 0.419, 0.533, 0.559, 0.497, 0.354, 0.328, 0.406, 0.546, 0.539, 0.597, 0.731, 0.443, 0.573, 0.362, 0.432, 0.567, 0.543, 0.303, 0.544, 0.507, 0.649, 0.517, 0.012, 0.754, 0.784, 0.473, 0.306, 0.29, 0.82, 0.532, 0.145, 0.489, 0.461, 0.217, 0.456, 0.564, 0.36, 0.074, 0.806, 0.659, 0.817, 0.039, 0.25, 0.535, 0.473, 0.448, 0.401, 0.311, 0.426, 0.776, 0.461, 0.626, 0.613, 0.311, 0.357, 0.499, 0.773, 0.469, 0.656, 0.518, 0.589, 0.247, 0.452, 0.619, 0.003, 0.53, 0.201, 0.605, 0.663, 0.487, 0.375, 0.644, 0.62, 0.402, 0.387, 0.439, 0.767, 0.484, 0.647, 0.409, 0.423, 0.433, 0.571, 0.53, 0.385, 0.357, 0.356, 0.416, 0.515, 0.453, 0.446, 0.44, 0.702, 0.589, 0.589, 0.386, 0.591, 0.655, 0.467, 0.508, 0.436, 0.378, 0.488, 0.64, 0.316, 0.559, 0.331, 0.455, 0.744, 0.548, 0.385, 0.28]`);
+scene({ id: 'breakdown', start: 130, end: 202, ramp: { y: [-300, 0] },
+  build(cam) {
+    ground(cam, 'g-dark');
+    // preview monitor: the frame under the playhead
+    const mon = win(cam, { x: 375, y: 250, w: 330, hh: 634, title: 'reel 021', right: '▪' });
+    const frames = Array.from({ length: 14 }, (_, i) => `assets/clip/f${String(i + 1).padStart(2, '0')}.jpg`);
+    const views = frames.map(u => { const e = h('div', { class: 'abs', style: { inset: 0, backgroundImage: `url(${u})`, backgroundSize: 'cover' } }); mon.body.append(e); return e; });
+    // timeline: filmstrip track + waveform track, split into segments the blade will separate
+    const FW = 57, FH = 101, X0 = 126, TY = 960;
+    const groups = [[0, 1], [1, 5], [5, 10], [10, 14]];
+    const segs = groups.map(([a, b]) => {
+      const seg = h('div', { class: 'abs', style: { left: px(X0 + a * FW), top: px(TY), width: px((b - a) * FW), height: '176px' } });
+      for (let i = a; i < b; i++) seg.append(h('div', { class: 'abs', style: { left: px((i - a) * FW), top: 0, width: px(FW), height: px(FH), backgroundImage: `url(${frames[i]})`, backgroundSize: 'cover', borderRight: '1px solid #141414' } }));
+      const c = h('canvas', { width: (b - a) * FW, height: 62, class: 'abs', style: { left: 0, top: px(FH + 12), background: '#262626' } });
+      const g = c.getContext('2d'); g.fillStyle = '#8a8a8a';
+      const p0 = Math.floor(a / 14 * PEAKS.length), p1 = Math.floor(b / 14 * PEAKS.length);
+      for (let k = p0; k < p1; k++) { const bw = c.width / (p1 - p0), v = PEAKS[k] * 26 + 2; g.fillRect((k - p0) * bw, 31 - v, Math.max(1, bw - 1.5), v * 2); }
+      seg.append(c);
+      seg.style.outline = '3px solid transparent'; seg.style.outlineOffset = '3px';
+      cam.append(seg);
+      return seg;
+    });
+    const head = h('div', { class: 'abs', style: { top: px(TY - 30), width: '6px', height: '206px', background: PINK, zIndex: 10 } });
+    head.append(h('div', { class: 'abs', style: { left: '-11px', top: '-6px', width: '28px', height: '22px', background: PINK } }));
+    const blades = [1, 5, 10].map(i => { const e = h('div', { class: 'abs', style: { left: px(X0 + i * FW - 2), top: px(TY - 14), width: '4px', height: '204px', background: PAPER, zIndex: 9 } }); cam.append(e); return e; });
+    const hook = h('div', { class: 'tag' }, 'HOOK');
+    const struct = h('div', { class: 'tag' }, 'STRUCTURE');
+    const brace = h('div', { class: 'abs', style: { top: px(TY - 34), height: '22px', border: '5px solid ' + PINK, borderBottom: 'none' } });
+    cam.append(head, hook, struct, brace);
+    return { views, segs, head, blades, hook, struct, brace, FW, X0, TY };
+  },
+  render(f, s) {
+    const { FW, X0, TY } = s;
+    const sweep = tw(f, 2, 26, E.inOut);
+    const hx = X0 + sweep * 14 * FW;
+    s.head.style.left = px(hx - 3); s.head.style.visibility = f < 30 ? 'visible' : 'hidden';
+    const idx = f < 30 ? Math.min(13, Math.floor(sweep * 14)) : 0;           // after the cut the monitor holds on the hook
+    s.views.forEach((v, i) => v.style.visibility = i === idx ? 'visible' : 'hidden');
+    const a = tw(f, 32, 10), b = tw(f, 49, 12);                            // "hook" ≈ f34, "structure" ≈ f51
+    s.blades[0].style.visibility = f >= 30 && f < 34 ? 'visible' : 'hidden';
+    s.blades[1].style.visibility = s.blades[2].style.visibility = f >= 47 && f < 51 ? 'visible' : 'hidden';
+    s.segs[0].style.transformOrigin = '0 100%';
+    s.segs[0].style.transform = `translate(${-6 * a}px,${-190 * a}px) scale(${lerp(1, 1.8, a)})`;
+    s.segs[0].style.outlineColor = a > 0 ? PINK : 'transparent';
+    [1, 2, 3].forEach(k => { s.segs[k].style.transform = `translateX(${(k - 1) * 12 * b}px)`; s.segs[k].style.outlineColor = b > 0 ? PAPER : 'transparent'; });
+    place(s.hook, X0 - 6, TY + 176 - 190 - 317 - 72); s.hook.style.visibility = a > 0.02 ? 'visible' : 'hidden';
+    s.hook.style.transform = `translateY(${20 * (1 - a)}px)`;
+    const bx = X0 + FW, bw = 13 * FW + 24;
+    place(s.brace, bx, TY - 34, bw * b); s.brace.style.visibility = b > 0.02 ? 'visible' : 'hidden';
+    place(s.struct, bx + bw - 250, TY - 104); s.struct.style.visibility = b > 0.3 ? 'visible' : 'hidden';
+  } });
+
+/* B5 202–244 "for 17 cents" — a receipt prints out of the model */
+scene({ id: 'receipt', start: 202, end: 244, ramp: { scale: [1.3, 1], rot: [-6, 0] },
+  build(cam) {
+    halftone(cam, 11, [[980, 420, 380], [60, 1500, 460]]);
+    const slot = win(cam, { x: 180, y: 280, w: 720, hh: 150, title: 'jev · usage', right: '▪' });
+    slot.body.append(h('div', { class: 'abs', style: { left: '60px', right: '60px', top: '44px', height: '14px', background: INK } }));
+    const clip = h('div', { class: 'abs', style: { left: '250px', top: '400px', width: '580px', height: '760px', overflow: 'hidden' } });
+    const paper = h('div', { class: 'abs', style: { left: '0', bottom: '0', width: '580px', height: '760px', background: PAPER, borderLeft: '3px solid #1E1E1E', borderRight: '3px solid #1E1E1E', borderBottom: '3px solid #1E1E1E', padding: '40px 44px' } });
+    const r = rng(3);
+    for (let i = 0; i < 13; i++) paper.append(h('div', { style: { display: 'flex', justifyContent: 'space-between', height: '30px', alignItems: 'center' } },
+      h('div', { style: { height: '10px', width: px(120 + r() * 200), background: 'rgba(30,30,30,.22)' } }),
+      h('div', { style: { height: '10px', width: '60px', background: 'rgba(30,30,30,.22)' } })));
+    const total = h('div', { class: 'mono', style: { marginTop: '28px', borderTop: '4px dashed #1E1E1E', paddingTop: '26px', font: '700 150px/1 Mono', letterSpacing: '-4px' } }, '$0.00');
+    paper.append(total); clip.append(paper); cam.insertBefore(clip, slot.el);
+    return { paper, total };
+  },
+  render(f, s) {
+    const p = tw(f, 2, 26, E.inOut);
+    s.paper.style.transform = `translateY(${-760 * (1 - p)}px)`;
+    s.total.textContent = '$0.' + String(Math.round(17 * tw(f, 8, 20, E.inOut))).padStart(2, '0');
+  } });
+
+/* B6 244–273 "It's called Jev" — the real mark, the name typed */
+scene({ id: 'jev-name', start: 244, end: 273, ramp: { scale: [1.6, 1] },
+  build(cam) {
+    ground(cam, 'g-pink');
+    const marks = h('div', { class: 'abs', style: { left: '150px', top: '270px', width: '780px', height: '1000px' } });
+    for (const [x, y, sx, sy] of [[0, 0, 1, 1], [780, 0, -1, 1], [0, 1000, 1, -1], [780, 1000, -1, -1]])
+      marks.append(h('div', { class: 'abs', style: { left: px(x - (sx < 0 ? 44 : 0)), top: px(y - (sy < 0 ? 44 : 0)), width: '44px', height: '44px', borderTop: sy > 0 ? '5px solid #3A2E30' : 'none', borderBottom: sy < 0 ? '5px solid #3A2E30' : 'none', borderLeft: sx > 0 ? '5px solid #3A2E30' : 'none', borderRight: sx < 0 ? '5px solid #3A2E30' : 'none' } }));
+    const mark = h('img', { src: 'assets/logos/typesafe-mark.png', class: 'abs', style: { left: '400px', top: '330px', width: '280px' } });
+    const name = h('div', { class: 'abs', style: { left: '0', width: '1080px', top: '780px', textAlign: 'center', font: '600 330px/1 Grot', letterSpacing: '-12px', color: '#3A2E30' } });
+    cam.append(marks, mark, name);
+    return { mark, name };
+  },
+  render(f, s) {
+    const n = Math.min(3, Math.floor(tw(f, 5, 12, E.lin) * 3.999));
+    const caret = f % 12 < 7 || n < 3 ? '▌' : ' ';
+    s.name.innerHTML = 'Jev'.slice(0, n) + `<span style="color:${INK};font-weight:500">${caret}</span>`;
+    s.mark.style.transform = `translateY(${lerp(40, 0, tw(f, 0, 10))}px)`;
+  } });
+
+/* B7 272–333 "different than a regular AI" — chat pours prose, Jev returns one typed answer */
+scene({ id: 'not-chat', start: 272, end: 333, ramp: { x: [320, 0] },
+  build(cam) {
+    ground(cam, 'g-paper');
+    const chat = win(cam, { x: 140, y: 250, w: 800, hh: 500, title: 'chat model', right: '...' });
+    const lines = h('div', { class: 'abs', style: { left: '32px', right: '32px', top: '28px' } });
+    const r = rng(9);
+    for (let i = 0; i < 40; i++) lines.append(h('div', { style: { height: '14px', margin: '0 0 18px', width: px(i % 6 === 5 ? 200 + r() * 200 : 600 + r() * 130), background: 'rgba(30,30,30,.28)', visibility: 'hidden' } }));
+    chat.body.append(lines);
+    const jev = win(cam, { x: 140, y: 830, w: 800, hh: 300, title: 'jev', right: '▪' });
+    const prompt = h('div', { class: 'abs mono', style: { left: '32px', top: '34px', font: '500 32px Mono', color: '#6b6b6b' } }, 'type: hook');
+    const chip = h('div', { class: 'tag', style: { left: '32px', top: '110px', fontSize: '56px', padding: '18px 26px' } }, '"question"');
+    const conf = h('div', { class: 'abs mono', style: { left: '450px', top: '138px', font: '700 44px Mono' } }, '0.94');
+    jev.body.append(prompt, chip, conf);
+    return { lines: [...lines.children], lwrap: lines, chip, conf };
+  },
+  render(f, s) {
+    const shown = Math.floor(clamp((f - 2) / 1.3, 0, 40));
+    s.lines.forEach((l, i) => l.style.visibility = i < shown ? 'visible' : 'hidden');
+    s.lwrap.style.transform = `translateY(${-Math.max(0, shown - 13) * 32}px)`;   // keeps scrolling: it never stops talking
+    const p = tw(f, 20, 7);
+    s.chip.style.visibility = s.conf.style.visibility = f >= 20 ? 'visible' : 'hidden';
+    s.chip.style.transform = `scale(${lerp(.6, 1, p)})`; s.chip.style.transformOrigin = '0 50%';
+  } });
+
+/* B8 333–404 "sorts things into different categories" — reels routed into three bins */
+scene({ id: 'sorter', start: 333, end: 404, ramp: { scale: [1.22, 1], y: [120, 0] },
+  build(cam) {
+    halftone(cam, 21, [[540, -60, 380], [540, 1900, 300]], 20);
+    const bins = ['QUESTION', 'STORY', 'LIST'].map((t, k) => {
+      const w = win(cam, { x: 132 + k * 282, y: 720, w: 252, hh: 430, title: t, right: '' });
+      w.el.querySelector('.bar').style.fontSize = '22px';
+      return w;
+    });
+    const order = [1, 0, 2, 1, 2, 0, 1, 2, 0];
+    const cards = order.map((b, k) => { const e = reel([6, 11, 21, 20, 19, 27, 5, 16, 3][k], 0, 0, 176); e.style.zIndex = 20 + k; cam.append(e); return { e, b }; });
+    // the gate cards pass through
+    const gate = h('div', { class: 'abs', style: { left: '380px', top: '600px', width: '320px', height: '24px', background: INK } });
+    cam.append(gate);
+    return { cards };
+  },
+  render(f, s) {
+    const count = [0, 0, 0];
+    s.cards.forEach((c, k) => {
+      const t0 = 2 + k * 6, p = tw(f, t0, 16, E.inOut);
+      const n = count[c.b]; if (p >= 1) count[c.b]++;
+      const sx = 452, sy = 250;                                     // drop point, top centre
+      const ex = 132 + c.b * 282 + 38, ey = 790 + n * 56;   // stack in the bin
+      const x = lerp(sx, ex, p), y = lerp(sy, ey, p) - Math.sin(p * Math.PI) * 60;
+      c.e.style.transform = `translate(${x}px,${y}px) scale(${lerp(1.15, 1, p)})`;
+      c.e.style.visibility = f >= t0 ? 'visible' : 'hidden';
+    });
+  } });
+
+/* B9 404–449 "which is why it's so cheap" — the site's own price table, as two bars */
+scene({ id: 'price', start: 404, end: 449, ramp: { x: [-320, 0] },
+  build(cam) {
+    ground(cam, 'g-dark');
+    const rows = [['Opus 5', 176.05, PAPER], ['Jev', 0.39, PINK]].map(([name, v, c], k) => {
+      const y = 430 + k * 330;
+      const label = h('div', { class: 'abs mono', style: { left: '130px', top: px(y), font: '700 44px Mono', color: c === PINK ? PINK : '#bdbdbd', background: 'transparent' } }, name);
+      const bar = h('div', { class: 'abs', style: { left: '130px', top: px(y + 70), height: '110px', background: c, border: c === PINK ? 'none' : '3px solid #FEFEFE' } });
+      const num = h('div', { class: 'abs mono', style: { top: px(y + 200), left: '130px', font: '700 64px Mono', color: c } });
+      cam.append(label, bar, num);
+      return { v, bar, num };
+    });
+    return { rows };
+  },
+  render(f, s) {
+    s.rows.forEach((r, k) => {
+      const p = tw(f, 3 + k * 8, 18, E.inOut);
+      r.bar.style.width = px(Math.max(8, (r.v / 176.05) * 820 * p));
+      r.num.textContent = '$' + (r.v * p).toFixed(2);
+    });
+  } });
+
+/* B10 449–499 "Just give it any creator's reels" — drag the stack into Jev */
+scene({ id: 'drop', start: 449, end: 499, ramp: { scale: [0.8, 1] },
+  build(cam) {
+    ground(cam, 'g-paper');
+    const w = win(cam, { x: 140, y: 690, w: 800, hh: 440, title: 'jev', right: '▪ ▪' });
+    const zone = h('div', { class: 'abs mono', style: { inset: '28px', border: '4px dashed ' + PINK, display: 'grid', placeItems: 'center', font: '700 40px Mono', color: PINK } }, 'drop reels');
+    w.body.append(zone);
+    const stack = h('div', { class: 'abs', style: { left: '0', top: '0', width: '300px', height: '533px', zIndex: 20 } });
+    [0, 13, 25].forEach((i, k) => { const e = reel(i, 0, 0, 240); e.style.transform = `translate(${k * 26}px,${k * 16}px) rotate(${(k - 1) * 5}deg)`; stack.append(e); });
+    cam.append(stack);
+    const cur = cursor(cam);
+    return { stack, cur, zone };
+  },
+  render(f, s) {
+    const grab = tw(f, 2, 10, E.inOut), drag = tw(f, 14, 20, E.inOut), drop = tw(f, 36, 8);
+    const sx = 170, sy = 250, ex = 400, ey = 700;
+    const x = lerp(sx, ex, drag), y = lerp(sy, ey, drag);
+    s.stack.style.transform = `translate(${x}px,${y}px) scale(${lerp(1, .42, drop)})`;
+    s.stack.style.transformOrigin = '150px 260px';
+    s.stack.style.visibility = drop < 1 ? 'visible' : 'hidden';
+    s.cur.set(lerp(760, x + 150, grab), lerp(360, y + 230, grab), f >= 12 && f < 36 ? 1 : press(f, 10));
+    s.zone.style.background = drop > 0 ? `rgba(243,134,161,${.25 * drop})` : 'transparent';
+    s.zone.textContent = drop >= 1 ? '3 reels ✓' : 'drop reels'; s.zone.style.color = drop >= 1 ? INK : PINK;
+  } });
+
+/* B11 499–553 "and it labels every one for you" — a grid, labelled one after another */
+scene({ id: 'labels', start: 499, end: 553, ramp: { rot: [7, 0], scale: [1.15, 1] },
+  build(cam) {
+    halftone(cam, 33, [[-40, 700, 420], [1120, 1200, 460]]);
+    const ids = [21, 6, 11, 20, 19, 27], tags = ['QUESTION', 'STORY', 'LIST', 'STORY', 'RANT', 'LIST'];
+    const cells = ids.map((i, k) => {
+      const x = 130 + (k % 3) * 280, y = 260 + Math.floor(k / 3) * 440;
+      const e = reel(i, x, y, 260); e.style.height = '420px'; cam.append(e);
+      const t = h('div', { class: 'tag', style: { fontSize: '24px', padding: '8px 10px', zIndex: 5 } }, tags[k]);
+      place(t, x + 12, y + 360); cam.append(t);
+      return t;
+    });
+    return { cells };
+  },
+  render(f, s) {
+    s.cells.forEach((t, k) => {
+      const p = tw(f, 6 + k * 6, 6);
+      t.style.visibility = p > 0 ? 'visible' : 'hidden';
+      t.style.transform = `scale(${lerp(1.8, 1, p)})`; t.style.transformOrigin = '0 100%';
+    });
+  } });
+
+/* B12 553–619 "the topic, the hook and the structure" — three choice fields lock in */
+scene({ id: 'fields', start: 553, end: 619, ramp: { y: [240, 0] },
+  build(cam) {
+    ground(cam, 'g-paper');
+    const w = win(cam, { x: 130, y: 300, w: 820, hh: 780, title: 'jev · reel 021', right: '▪' });
+    w.body.append(reel(21, 30, 34, 280));
+    const rows = [['topic', ['Money', 'Sales', 'Hiring']], ['hook', ['Story', 'List', 'Question']], ['structure', ['List', 'Rant', 'Story']]].map(([k, opts], i) => {
+      const y = 50 + i * 230;
+      w.body.append(h('div', { class: 'abs mono', style: { left: '350px', top: px(y), font: '500 28px Mono', color: '#6b6b6b' } }, k));
+      const box = h('div', { class: 'abs mono', style: { left: '350px', top: px(y + 46), width: '410px', height: '96px', border: '3px solid #1E1E1E', font: '700 44px/90px Mono', padding: '0 22px' } });
+      const bar = h('div', { class: 'abs', style: { left: '350px', top: px(y + 158), height: '12px', background: INK } });
+      w.body.append(box, bar);
+      return { box, bar, opts };
+    });
+    return { rows };
+  },
+  render(f, s) {
+    [2, 23, 43].forEach((at, i) => {
+      const r = s.rows[i];
+      const spin = clamp((f - at) / 12);
+      const idx = f < at ? -1 : spin < 1 ? Math.floor(f / 2) % 3 : 2;   // options flick past, then lock
+      r.box.textContent = idx < 0 ? '' : r.opts[idx] + (spin >= 1 ? '' : '');
+      r.box.style.background = spin >= 1 ? PINK : PAPER;
+      r.bar.style.width = px(410 * [0.91, 0.94, 0.88][i] * tw(f, at + 12, 12));
+    });
+  } });
+
+/* B13 619–680 "doesn't just hand you a spreadsheet" — the sheet fills, then gets struck */
+scene({ id: 'sheet', start: 619, end: 680, ramp: { scale: [1.3, 1], x: [-120, 0] },
+  build(cam) {
+    ground(cam, 'g-dark');
+    const w = win(cam, { x: 140, y: 300, w: 800, hh: 760, title: 'reels.csv', right: '▪' });
+    const grid = h('div', { class: 'abs', style: { inset: '0', display: 'grid', gridTemplateColumns: '1.6fr 1fr 1fr 1fr', gridAutoRows: '58px' } });
+    const r = rng(5), cells = [];
+    for (let i = 0; i < 48; i++) {
+      const c = h('div', { style: { borderRight: '2px solid #d6d6d6', borderBottom: '2px solid #d6d6d6', padding: '20px 14px' } });
+      const bar = h('div', { style: { height: '14px', width: px(40 + r() * (i % 4 ? 70 : 170)), background: i < 4 ? INK : 'rgba(30,30,30,.3)' } });
+      c.append(bar); grid.append(c); cells.push(bar);
+    }
+    w.body.append(grid);
+    const svg = h('svg', { class: 'abs', width: 1080, height: 1920, style: { left: 0, top: 0 } });
+    const line = h('line', { x1: 170, y1: 1020, x2: 910, y2: 360, stroke: PINK, 'stroke-width': 26, 'stroke-linecap': 'square' });
+    svg.append(line); cam.append(svg);
+    return { cells, line, len: Math.hypot(740, 660) };
+  },
+  render(f, s) {
+    const shown = Math.floor(clamp((f - 2) / 0.45, 0, 48));
+    s.cells.forEach((c, i) => c.style.visibility = i < shown ? 'visible' : 'hidden');
+    const p = tw(f, 34, 9, E.inOut);                      // "spreadsheet" lands ≈ f38
+    s.line.setAttribute('stroke-dasharray', s.len);
+    s.line.setAttribute('stroke-dashoffset', s.len * (1 - p));
+  } });
+
+/* B14 680–765 "a full chart of how every reel performed" — bars grow from each reel */
+const TOP = [[21, 1100e3], [6, 178e3], [11, 102e3], [20, 72e3], [19, 67e3], [27, 58e3], [5, 57e3], [16, 45e3]];
+scene({ id: 'chart', start: 680, end: 765, ramp: { x: [300, 0], rot: [-4, 0] },
+  build(cam) {
+    ground(cam, 'g-paper');
+    const w = win(cam, { x: 125, y: 260, w: 830, hh: 900, title: 'views per reel', right: '▪ ▪' });
+    const order = [3, 7, 1, 5, 0, 6, 2, 4];               // not sorted — the chart reveals the winner
+    const bars = order.map((ti, k) => {
+      const [i, v] = TOP[ti];
+      const x = 34 + k * 96;
+      const th = reel(i, x, 680, 76); th.style.borderWidth = '2px'; w.body.append(th);
+      const b = h('div', { class: 'abs', style: { left: px(x), width: '76px', bottom: px(900 - 48 - 670), background: ti === 0 ? PINK : INK, border: '3px solid #1E1E1E' } });
+      w.body.append(b);
+      return { b, v, k };
+    });
+    return { bars };
+  },
+  render(f, s) {
+    s.bars.forEach(({ b, v, k }) => {
+      const p = tw(f, 4 + k * 3, 26, E.inOut);
+      b.style.height = px(Math.max(4, Math.sqrt(v / 1100e3) * 600 * p));
+    });
+  } });
+
+/* B15 765–848 "so you can clearly see which ideas actually win" — the winner is clicked */
+scene({ id: 'winner', start: 765, end: 848, ramp: { scale: [0.78, 1] },
+  build(cam) {
+    halftone(cam, 41, [[540, 1700, 520], [120, 120, 300]]);
+    const side = [[6, 150], [11, 650]].map(([i, x]) => { const e = reel(i, x, 470, 280); e.style.filter = 'grayscale(1) contrast(.9)'; cam.append(e); return e; });
+    const main = reel(21, 330, 290, 420); main.style.borderWidth = '4px'; main.style.zIndex = 5; cam.append(main);
+    const ring = h('div', { class: 'abs', style: { left: '316px', top: '276px', width: '448px', height: '775px', border: '10px solid ' + PAPER, zIndex: 4 } });
+    const views = h('div', { class: 'tag', style: { left: '355px', top: '960px', fontSize: '50px', zIndex: 6 } });
+    cam.append(ring, views);
+    const cur = cursor(cam);
+    return { side, main, ring, views, cur };
+  },
+  render(f, s) {
+    const mv = tw(f, 6, 16, E.inOut), click = 24, lit = tw(f, click + 2, 8);
+    s.cur.set(lerp(880, 610, mv), lerp(1120, 700, mv), press(f, click));
+    s.ring.style.visibility = f >= click + 2 ? 'visible' : 'hidden';
+    s.ring.style.transform = `scale(${lerp(1.08, 1, lit)})`;
+    s.main.style.transform = `scale(${lerp(1, 1.04, lit)})`;
+    s.views.style.visibility = f >= click + 2 ? 'visible' : 'hidden';
+    s.views.textContent = fmtK(1100e3 * tw(f, click + 2, 20, E.inOut)) + ' views';
+    s.side.forEach(e => e.style.opacity = lerp(1, .55, lit));
+  } });
+
+/* B16 848–925 "point it at your own account" — type your handle, hit analyze */
+scene({ id: 'handle', start: 848, end: 925, ramp: { y: [-260, 0], scale: [1.1, 1] },
+  build(cam) {
+    ground(cam, 'g-paper');
+    const w = win(cam, { x: 140, y: 440, w: 800, hh: 520, title: 'jev · account', right: '▪' });
+    const field = h('div', { class: 'abs mono', style: { left: '40px', right: '40px', top: '70px', height: '130px', border: '3px solid #1E1E1E', font: '700 60px/124px Mono', padding: '0 28px' } });
+    const btn = h('div', { class: 'abs mono', style: { left: '40px', right: '40px', top: '260px', height: '130px', background: INK, color: PAPER, font: '700 56px/130px Mono', textAlign: 'center' } }, 'Analyze →');
+    w.body.append(field, btn);
+    const cur = cursor(cam);
+    return { field, btn, cur };
+  },
+  render(f, s) {
+    const handle = '@yourhandle';
+    const n = Math.floor(tw(f, 6, 30, E.lin) * handle.length);
+    s.field.innerHTML = handle.slice(0, n) + (f < 48 && f % 10 < 6 ? `<span style="color:${PINK}">▌</span>` : '');
+    const mv = tw(f, 34, 16, E.inOut), click = 52;
+    s.cur.set(lerp(860, 560, mv), lerp(1220, 820, mv), press(f, click));
+    const on = f >= click + 2;
+    s.btn.style.background = on ? PINK : INK; s.btn.style.color = on ? INK : PAPER;
+    s.btn.textContent = on ? (f % 12 < 6 ? 'Analyzing ▪▪▪' : 'Analyzing ▪▪') : 'Analyze →';
+  } });
+
+/* B17 925–985 "which of your videos performed the best" — your reels sort themselves */
+scene({ id: 'your-best', start: 925, end: 985, ramp: { rot: [-7, 0], scale: [1.2, 1] },
+  build(cam) {
+    ground(cam, 'g-dark');
+    const score = [3, 8, 1, 6, 9, 2, 5, 7, 4];            // "your" placeholder reels
+    const tiles = score.map((sc, k) => {
+      const e = h('div', { class: 'abs', style: { width: '250px', height: '270px', background: `hsl(345 ${55 + sc * 3}% ${92 - sc * 3.2}%)`, border: '3px solid #FEFEFE' } });
+      e.append(h('div', { class: 'abs', style: { left: '95px', top: '50px', width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(30,30,30,.55)' } }),
+        h('div', { class: 'abs', style: { left: '60px', top: '120px', width: '130px', height: '80px', borderRadius: '65px 65px 0 0', background: 'rgba(30,30,30,.55)' } }),
+        h('div', { class: 'abs mono', style: { left: '14px', bottom: '10px', font: '700 30px Mono', color: INK } }, sc * 4 + 'K'));
+      cam.append(e);
+      return { e, sc, from: k, to: [...score].sort((a, b) => b - a).indexOf(sc) };
+    });
+    const badge = h('div', { class: 'tag', style: { fontSize: '44px', zIndex: 10 } }, '#1');
+    cam.append(badge);
+    return { tiles, badge };
+  },
+  render(f, s) {
+    const pos = k => [130 + (k % 3) * 285, 300 + Math.floor(k / 3) * 295];
+    const p = tw(f, 8, 22, E.inOut);
+    for (const t of s.tiles) {
+      const [ax, ay] = pos(t.from), [bx, by] = pos(t.to);
+      t.e.style.left = px(lerp(ax, bx, p)); t.e.style.top = px(lerp(ay, by, p) - Math.sin(p * Math.PI) * (t.to === 0 ? 80 : 0));
+      t.e.style.zIndex = t.to === 0 ? 5 : 1;
+      const lit = tw(f, 32, 8);
+      t.e.style.borderColor = t.to === 0 && lit > 0 ? PINK : PAPER;
+      t.e.style.borderWidth = t.to === 0 ? px(3 + 7 * lit) : '3px';
+      t.e.style.opacity = t.to === 0 ? 1 : lerp(1, .45, lit);
+    }
+    const b = tw(f, 32, 8);
+    s.badge.style.visibility = b > 0 ? 'visible' : 'hidden';
+    place(s.badge, 150, 280); s.badge.style.transform = `scale(${lerp(1.6, 1, b)})`;
+  } });
+
+/* B18 985–1046 "understand the reason behind it" — scrub to the moment that did it */
+scene({ id: 'reason', start: 985, end: 1046, ramp: { x: [-300, 0] },
+  build(cam) {
+    halftone(cam, 55, [[1080, 300, 420], [0, 1500, 420]]);
+    const w = win(cam, { x: 140, y: 400, w: 800, hh: 560, title: 'why #1', right: '▪' });
+    const wave = h('div', { class: 'abs', style: { left: '40px', top: '190px', width: '720px', height: '160px', display: 'flex', alignItems: 'center', gap: '6px' } });
+    const r = rng(77), bars = [];
+    for (let i = 0; i < 60; i++) { const b = h('div', { style: { flex: '1', height: px(20 + r() * 130), background: 'rgba(30,30,30,.3)' } }); wave.append(b); bars.push(b); }
+    const head = h('div', { class: 'abs', style: { top: '160px', width: '6px', height: '220px', background: INK } });
+    const tag = h('div', { class: 'tag', style: { left: '40px', top: '48px', fontSize: '44px' } }, 'hook');
+    const conf = h('div', { class: 'abs mono', style: { left: '40px', top: '400px', font: '700 64px Mono' } });
+    w.body.append(wave, head, tag, conf);
+    return { bars, head, tag, conf };
+  },
+  render(f, s) {
+    const p = tw(f, 4, 20, E.inOut);
+    const end = Math.round(p * 14);                        // the first ~quarter: the hook
+    s.bars.forEach((b, i) => b.style.background = i < end ? PINK : 'rgba(30,30,30,.3)');
+    s.head.style.left = px(40 + p * 14 / 60 * 720);
+    const t = tw(f, 26, 7);
+    s.tag.style.visibility = t > 0 ? 'visible' : 'hidden'; s.tag.style.transform = `translateY(${lerp(30, 0, t)}px)`;
+    s.conf.textContent = f >= 26 ? Math.round(94 * tw(f, 26, 16, E.inOut)) + '% sure' : '';
+  } });
+
+/* B19 1046–1073 "Wanna copy it?" — ⌘C, and the card duplicates */
+scene({ id: 'copy', start: 1046, end: 1073, ramp: { scale: [1.45, 1] },
+  build(cam) {
+    ground(cam, 'g-pink');
+    const card = () => { const c = h('div', { class: 'win', style: { width: '560px', height: '300px' } }, h('div', { class: 'bar' }, h('span', {}, 'hook'), h('i', {}, '▪')));
+      c.append(h('div', { class: 'abs mono', style: { left: '32px', top: '110px', font: '700 64px Mono' } }, '"question"')); return c; };
+    const a = card(), b = card();
+    place(a, 240, 300); place(b, 240, 300); b.style.zIndex = 2;
+    const key = t => h('div', { class: 'abs', style: { width: '200px', height: '200px', background: PAPER, border: '4px solid #1E1E1E', font: '600 110px/190px Grot', textAlign: 'center' } }, t);
+    const k1 = key('⌘'), k2 = key('C'); place(k1, 300, 800); place(k2, 580, 800);
+    cam.append(a, b, k1, k2);
+    return { b, keys: [k1, k2] };
+  },
+  render(f, s) {
+    const pr = press(f, 4);
+    s.keys.forEach(k => { k.style.transform = `translateY(${pr * 14}px)`; k.style.boxShadow = `${14 - pr * 12}px ${14 - pr * 12}px 0 rgba(30,30,30,.3)`; k.style.background = f >= 4 && f < 12 ? PINK : PAPER; });
+    const p = tw(f, 8, 12);
+    s.b.style.transform = `translate(${60 * p}px,${60 * p}px)`;
+    s.b.style.visibility = f >= 8 ? 'visible' : 'hidden';
+  } });
+</script>
+</body>
+</html>

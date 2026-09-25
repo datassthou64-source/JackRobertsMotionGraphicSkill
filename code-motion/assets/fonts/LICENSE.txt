@@ -1,0 +1,2 @@
+JetBrains Mono, Inter, Inter Tight — SIL Open Font License 1.1 (fontsource builds, cdn.jsdelivr.net/npm/@fontsource).
+Use them when the brand font is paid or unavailable; load the brand's own face when it is free (Google Fonts).
