@@ -1,0 +1,13 @@
+import React from 'react';
+import {Props,Panel,Photo,Brand,tw,mix,Cursor} from './shared';
+import {Website} from './website';
+
+// Magic UI MagicCard: pointer-following radial gradient inside border and content.
+export const SpotlightCard:React.FC<Props>=({f,logos:files})=>{
+ const x=f<47?mix(90,780,tw(f,0,46)):mix(780,435,tw(f,48,22));const y=280;return <Panel w={870} h={580} dark><div style={{position:'absolute',inset:0,background:`radial-gradient(250px circle at ${x}px ${y}px,#c4a0ff,#FE8BBB55,transparent)`}}/><div style={{position:'absolute',inset:3,borderRadius:34,background:'#101116'}}/><div style={{position:'absolute',inset:3,borderRadius:34,background:`radial-gradient(290px circle at ${x}px ${y}px,#9370ed50,transparent)`,filter:'blur(4px)'}}/>{[0,1,2].map(i=>{const cx=215+i*220;const active=Math.max(0,1-Math.abs(x-cx)/170);return <div key={i} style={{position:'absolute',left:cx-84,top:196,opacity:.55+.45*active,transform:`scale(${1+.16*active})`}}><div style={{position:'absolute',inset:-10,borderRadius:45,border:`2px solid rgba(196,160,255,${active*.8})`,boxShadow:`0 0 ${35*active}px #b797ff55`}}/><Brand i={i} size={168} files={files}/></div>})}<Cursor x={x+30} y={y+45} size={48}/></Panel>;
+};
+
+// Motion Primitives ImageComparison: complementary inset clip paths and draggable divider.
+export const ImageComparison:React.FC<Props>=({f,image,imageB,before,after})=>{
+ const split=f<54?mix(12,88,tw(f,7,43)):mix(88,50,tw(f,56,25));return <Panel w={940} h={710}><div style={{height:50,display:'flex',alignItems:'center',gap:9,padding:'0 22px',background:'#eeeff2',borderBottom:'1px solid #ddd'}}>{['#fa6058','#eeb746','#40bb5a'].map(c=><div key={c} style={{width:12,height:12,borderRadius:'50%',background:c}}/>)}<div style={{marginLeft:240,fontSize:18,color:'#80848d'}}>design.preview</div></div><div style={{position:'absolute',left:0,right:0,top:50,bottom:0}}><div style={{position:'absolute',inset:0,clipPath:`inset(0 ${100-split}% 0 0)`}}>{before??(image?<Photo file={image}/>:<Website/>)}</div><div style={{position:'absolute',inset:0,clipPath:`inset(0 0 0 ${split}%)`}}>{after??(imageB?<Photo file={imageB}/>:<Website premium/>)}</div><div style={{position:'absolute',left:`${split}%`,top:0,bottom:0,width:4,background:'#fff',boxShadow:'0 0 20px #0005'}}><div style={{position:'absolute',left:-34,top:275,width:72,height:72,background:'#fff',borderRadius:'50%',boxShadow:'0 6px 24px #0003',display:'grid',placeItems:'center',fontSize:38,color:'#252b36'}}>↔</div></div><Cursor x={split*9.4+18} y={320} size={50}/></div></Panel>;
+};

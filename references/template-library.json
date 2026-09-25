@@ -1,0 +1,306 @@
+{
+ "approvedOn": "2026-09-24",
+ "approvedBy": "the user",
+ "templates": [
+  {
+   "name": "ShineBorder",
+   "purpose": "Animated border; default for Broll",
+   "status": "approved",
+   "implementation": "starter/src/devices/shine-border.tsx"
+  },
+  {
+   "name": "AnimatedTabs",
+   "purpose": "Icon selection strip",
+   "status": "approved",
+   "implementation": "starter/src/devices/animated-tabs.tsx"
+  },
+  {
+   "name": "OrbitingCircles",
+   "purpose": "Flat circular tool orbits",
+   "status": "approved",
+   "implementation": "starter/src/devices/orbiting-circles.tsx"
+  },
+  {
+   "name": "IntegrationBeam",
+   "purpose": "Paths draw in; packets flow through the hub to the output",
+   "status": "approved",
+   "implementation": "starter/src/devices/approved-visuals/connections.tsx"
+  },
+  {
+   "name": "MagneticDock",
+   "purpose": "Sweep right, return to centre, click at frame 47, expand the window",
+   "status": "approved",
+   "implementation": "starter/src/devices/approved-visuals/connections.tsx"
+  },
+  {
+   "name": "LogoConveyor",
+   "purpose": "Two opposing logo rows, default 2× speed",
+   "status": "approved",
+   "implementation": "starter/src/devices/approved-visuals/connections.tsx"
+  },
+  {
+   "name": "SpotlightCard",
+   "purpose": "Pointer-following light with individual tile emphasis",
+   "status": "approved",
+   "implementation": "starter/src/devices/approved-visuals/images.tsx"
+  },
+  {
+   "name": "ImageComparison",
+   "purpose": "Before/after media or website comparison",
+   "status": "approved",
+   "implementation": "starter/src/devices/approved-visuals/images.tsx"
+  },
+  {
+   "name": "AttachmentPopover",
+   "purpose": "Full-width image preview above a freshly verified real chat composer",
+   "status": "approved",
+   "approvedOn": "2026-09-24",
+   "implementation": "starter/src/devices/approved-visuals/media-actions.tsx"
+  },
+  {
+   "name": "GlareSweep",
+   "purpose": "One-second reflective sweep; repeat per second in three-second auditions",
+   "status": "approved",
+   "approvedOn": "2026-09-24",
+   "implementation": "starter/src/devices/approved-visuals/media-actions.tsx",
+   "sweepFrames": 30,
+   "confirmedOn": "2026-09-24"
+  },
+  {
+   "name": "MosaicAssembly",
+   "purpose": "Website assembly by default; image-grid mode for image generation",
+   "status": "approved",
+   "approvedOn": "2026-09-24",
+   "implementation": "starter/src/devices/approved-visuals/media-actions.tsx"
+  },
+  {
+   "name": "DrawnEmphasis",
+   "purpose": "Transparent circle annotation over any logo, image, UI control or asset",
+   "status": "approved",
+   "approvedOn": "2026-09-24",
+   "implementation": "starter/src/devices/approved-visuals/media-actions.tsx"
+  },
+  {
+   "name": "PhoneReveal",
+   "purpose": "Touch-only phone scroll, image opening and swipe; centre y=820; no mouse cursor",
+   "status": "approved",
+   "approvedOn": "2026-09-24",
+   "implementation": "starter/src/devices/approved-visuals/result-actions.tsx",
+   "confirmedOn": "2026-09-24"
+  },
+  {
+   "name": "ConfettiReveal",
+   "purpose": "Completion ring opens into a result with two staged confetti bursts",
+   "status": "approved",
+   "approvedOn": "2026-09-24",
+   "implementation": "starter/src/devices/approved-visuals/result-actions.tsx"
+  },
+  {
+   "name": "ReferenceToWebsite",
+   "purpose": "Reference-image handoff through a real current composer into a website result",
+   "status": "approved",
+   "approvedOn": "2026-09-24",
+   "implementation": "starter/src/devices/approved-visuals/result-actions.tsx"
+  },
+  {
+   "name": "AssetRelay",
+   "purpose": "Move one asset through tools and expand the finished result",
+   "status": "approved",
+   "approvedOn": "2026-09-24",
+   "implementation": "starter/src/devices/approved-visuals/result-actions.tsx"
+  },
+  {
+   "name": "TokenStat",
+   "purpose": "Dark docs/pricing table card with a rotating light sweep on its rim over a blurred, lightly dimmed copy of itself; no text overlay",
+   "status": "approved",
+   "approvedOn": "2026-09-25",
+   "approvedBy": "the user",
+   "implementation": "starter/src/devices/reel-templates/scenes-b.tsx",
+   "previewFrames": 150,
+   "family": "reel-templates",
+   "defaultLen": 150,
+   "presets": "starter/src/devices/reel-templates/presets.ts"
+  },
+  {
+   "name": "LogoRoster",
+   "purpose": "Logos land one at a time big in the centre, then drop into a growing row",
+   "status": "approved",
+   "approvedOn": "2026-09-25",
+   "approvedBy": "the user",
+   "implementation": "starter/src/devices/reel-templates/scenes-b.tsx",
+   "previewFrames": 150,
+   "family": "reel-templates",
+   "defaultLen": 150,
+   "presets": "starter/src/devices/reel-templates/presets.ts"
+  },
+  {
+   "name": "OrbitRing",
+   "purpose": "Hero pops centre, lifts, logos shoot out on spokes and keep orbiting; tick ring + dotted halo fill",
+   "status": "approved",
+   "approvedOn": "2026-09-25",
+   "approvedBy": "the user",
+   "implementation": "starter/src/devices/reel-templates/scenes-b.tsx",
+   "previewFrames": 150,
+   "family": "reel-templates",
+   "defaultLen": 150,
+   "presets": "starter/src/devices/reel-templates/presets.ts"
+  },
+  {
+   "name": "ModelSwitcher",
+   "purpose": "Selection frame scrolls through a long row of model tiles, settles green with a check",
+   "status": "approved",
+   "approvedOn": "2026-09-25",
+   "approvedBy": "the user",
+   "implementation": "starter/src/devices/reel-templates/scenes-b.tsx",
+   "previewFrames": 150,
+   "family": "reel-templates",
+   "defaultLen": 150,
+   "presets": "starter/src/devices/reel-templates/presets.ts"
+  },
+  {
+   "name": "SwitcherCards",
+   "purpose": "Portrait model cards; frame steps ahead, row catches up, three times, then green",
+   "status": "approved",
+   "approvedOn": "2026-09-25",
+   "approvedBy": "the user",
+   "implementation": "starter/src/devices/reel-templates/scenes-b.tsx",
+   "previewFrames": 150,
+   "family": "reel-templates",
+   "defaultLen": 150,
+   "presets": "starter/src/devices/reel-templates/presets.ts"
+  },
+  {
+   "name": "NumberedFanIn",
+   "purpose": "Numbers 1..N arc in with arrows at a spinning hero mark; install bar fills",
+   "status": "approved",
+   "approvedOn": "2026-09-25",
+   "approvedBy": "the user",
+   "implementation": "starter/src/devices/reel-templates/scenes-a.tsx",
+   "previewFrames": 150,
+   "family": "reel-templates",
+   "defaultLen": 150,
+   "presets": "starter/src/devices/reel-templates/presets.ts"
+  },
+  {
+   "name": "ScreenFocus",
+   "purpose": "Screenshot over its own blur; accent box draws round one region; gentle push-in",
+   "status": "approved",
+   "approvedOn": "2026-09-25",
+   "approvedBy": "the user",
+   "implementation": "starter/src/devices/reel-templates/scenes-a.tsx",
+   "previewFrames": 150,
+   "family": "reel-templates",
+   "defaultLen": 150,
+   "presets": "starter/src/devices/reel-templates/presets.ts"
+  },
+  {
+   "name": "TerminalCounter",
+   "purpose": "Narrow agent terminal types a prompt, scan counts up with a bar, result line; slow in-place scale-up",
+   "status": "approved",
+   "approvedOn": "2026-09-25",
+   "approvedBy": "the user",
+   "implementation": "starter/src/devices/reel-templates/scenes-a.tsx",
+   "previewFrames": 150,
+   "family": "reel-templates",
+   "defaultLen": 150,
+   "presets": "starter/src/devices/reel-templates/presets.ts"
+  },
+  {
+   "name": "FilesToDoc",
+   "purpose": "Source logo tiles start centred; dashed connectors draw down into one document as the scene lifts",
+   "status": "approved",
+   "approvedOn": "2026-09-25",
+   "approvedBy": "the user",
+   "implementation": "starter/src/devices/reel-templates/scenes-a.tsx",
+   "previewFrames": 150,
+   "family": "reel-templates",
+   "defaultLen": 150,
+   "presets": "starter/src/devices/reel-templates/presets.ts"
+  },
+  {
+   "name": "TableScroll",
+   "purpose": "Dark reference table scrolls; accent frame lands on one row",
+   "status": "approved",
+   "approvedOn": "2026-09-25",
+   "approvedBy": "the user",
+   "implementation": "starter/src/devices/reel-templates/scenes-a.tsx",
+   "previewFrames": 150,
+   "family": "reel-templates",
+   "defaultLen": 150,
+   "presets": "starter/src/devices/reel-templates/presets.ts"
+  }
+ ],
+ "broll": {
+  "centreY": 850,
+  "border": "ShineBorder",
+  "width": 936,
+  "height": 526
+ },
+ "rejected": [
+  "Agent Plan",
+  "Dot Loader",
+  "Animated List",
+  "Expanding image strips",
+  "Unpacking image stack",
+  "Progressive focus",
+  "Colour backlight",
+  "Rolling digits",
+  "Liquid action button",
+  "Model swap",
+  "Pattern inspection",
+  "Filtering tool grid",
+  "Outline lettering",
+  "Overlapping tool cluster",
+  "Single-command terminal",
+  "Video-filled lettering",
+  "Drop image → canvas",
+  "Landscape → portrait",
+  "Drag to rearrange",
+  "Palette → website",
+  "Voice recording",
+  "Folder → project",
+  "Trim the clip",
+  "Duplicate and edit",
+  "Drop onto a date",
+  "Capability shape",
+  "Hover → image preview",
+  "Shape → full image",
+  "Create → export"
+ ],
+ "pendingBatch": null,
+ "confirmedRefinementsOn": "2026-09-24",
+ "pendingReview": [],
+ "motionRule": "Sustain meaningful action through the beat: interact, transform, transition, hand off. A static hold with only zoom in/out is insufficient.",
+ "chatUiRule": "Verify the current Claude, ChatGPT or Codex UI online for every new build. Use a real capture; record URL/date/variant. A bundled capture is a dated example, not proof of current UI.",
+ "interactionRule": "Use touch/gesture cues for phones. Never show a mouse cursor on a phone. Desktop pointer actions must cause the displayed change.",
+ "auditionsStatus": "closed at user request",
+ "closedOn": "2026-09-24",
+ "excludedUnapproved": [
+  "DropCanvas",
+  "PortraitCrop",
+  "BentoReorder",
+  "PaletteApply",
+  "VoiceWave",
+  "ProjectUnfold",
+  "TrimTimeline",
+  "DuplicateCanvas",
+  "ScheduleDrop",
+  "RadarCompare",
+  "HoverPreview",
+  "IrisCanvas",
+  "ExportStages",
+  "ThemeSwitch",
+  "InspectorOpen",
+  "LiveCollaboration",
+  "SignatureStamp",
+  "ShareScan",
+  "ScratchReveal",
+  "ScrollStory",
+  "WorldRoutes"
+ ],
+ "selectionRule": "Use references/template-selection.md to match script meaning and section to an approved template without opening previews or source. Only explicitly approved templates may be reused; prioritize relevant, engaging short-form b-roll. Current product UI verification and final-render QA remain separate requirements. Auditions are closed.",
+ "selectionGuide": "references/template-selection.md",
+ "selectionRequiresPreview": false,
+ "reelTemplatesApprovedOn": "2026-09-25",
+ "reelTemplatesNote": "10 full-frame scenes ported from reference reels Ddjfv-WP9yo and DdeVVlpT9zW. Text-free by design (no captions, stat text or tool names). Import from ./devices. Selection: references/template-selection.md \"Reel templates\". All default to 5 s (len=150) and ship approved presets (REEL_TEMPLATE_PRESETS); swap logos + facts only."
+}

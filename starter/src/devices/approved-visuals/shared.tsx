@@ -1,0 +1,12 @@
+import React from 'react';
+import {Img,staticFile} from 'remotion';
+import {AppIcon,Cursor,tw,mix,cardShadow} from '../../kit';
+export {tw,mix,cardShadow,Cursor};
+export type Props={f:number;logos?:string[];image?:string;imageB?:string;value?:number;screen?:React.ReactNode;before?:React.ReactNode;after?:React.ReactNode;speed?:number};
+export const logos=['lh_claude-color.svg','lh_openai.svg','lh_github.svg','higgsfield-mark.svg','21st-mark.svg','refero-mark.svg'];
+export const Brand=({i=0,size=150,files=logos}:{i?:number;size?:number;files?:string[]})=><AppIcon file={files[i%files.length]} size={size} pad={.18} bg={files[i%files.length]==='21st-mark.svg'?'#17171c':'#fff'}/>;
+export const Place=({x=540,y=640,children,style={}}:{x?:number;y?:number;children:React.ReactNode;style?:React.CSSProperties})=><div style={{position:'absolute',left:x,top:y,transform:'translate(-50%,-50%)',...style}}>{children}</div>;
+export const Panel=({w=900,h=600,children,dark=false,style={}}:{w?:number;h?:number;children:React.ReactNode;dark?:boolean;style?:React.CSSProperties})=><Place><div style={{position:'relative',width:w,height:h,borderRadius:38,background:dark?'#111116':'#fff',boxShadow:cardShadow,overflow:'hidden',border:'2px solid '+(dark?'#34343b':'#e3e5e8'),...style}}>{children}</div></Place>;
+export const Photo=({file='scene-a.jpg',style={}}:{file?:string;style?:React.CSSProperties})=><Img src={staticFile('images/'+file)} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',...style}}/>;
+export const Arrow=({size=60,color='currentColor'}:{size?:number;color?:string})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>;
+export const Check=({size=70,color='#22a875'}:{size?:number;color?:string})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 4 4L20 5"/></svg>;

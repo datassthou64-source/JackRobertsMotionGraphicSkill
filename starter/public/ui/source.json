@@ -1,0 +1,14 @@
+{
+  "product": "ChatGPT",
+  "url": "https://chatgpt.com/",
+  "verifiedOn": "2026-09-24",
+  "variant": "public logged-out dark responsive web composer",
+  "crop": {
+    "x": 27,
+    "y": 512,
+    "width": 640,
+    "height": 56
+  },
+  "capture": "chatgpt-full-20260924.jpg",
+  "asset": "chatgpt-composer-20260924.jpg"
+}
