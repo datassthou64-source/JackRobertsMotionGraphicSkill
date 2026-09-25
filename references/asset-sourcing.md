@@ -15,9 +15,17 @@ Project folders: `public/logos/` (SVG/PNG marks) · `public/caps/` (screenshots,
    ByteDance, Clawd (Claude Code mascot — `clawd-canonical.svg`).
 2. **svgl via 21st**: `scripts/fetch_logo.sh <project> "<brand>" [name] [--wordmark]` — free,
    unmetered, 500+ software marks. Prints candidates; verify the pick is the current mark.
-3. **The brand's own site**: press/brand page, `/favicon.svg`, `apple-touch-icon.png`, or the
+3. **The brand's own site via Firecrawl**: `python3 scripts/fetch_brand.py <project> <site-url> [name]`
+   — one call returns the site's logo, favicon, og-image **and** its brand kit (colours, fonts,
+   radius, button styles) into `public/brand/<name>.json`. Needs `FIRECRAWL_API_KEY` in your
+   environment. Use it for any brand svgl misses, and for every hero brand even when svgl hits
+   — the JSON is where the beat's accent colour and font come from (premium = the product's own
+   look). Header logos can be a variant/sticker: check it against svgl or the press kit.
+4. **Manual fallback**: press/brand page, `/favicon.svg`, `apple-touch-icon.png`, or the
    GitHub org avatar (`https://github.com/<org>.png` — 460px, fine for a 250px tile).
-4. **Never**: redraw, recolour, use an icon as a stand-in for a brand, or ship a mark you
+   For any other page scrape (pricing, feature copy, changelog to fact-check a beat), use
+   Firecrawl (`/v2/scrape`, `formats:["markdown"]`) before WebFetch — it renders JS sites.
+5. **Never**: redraw, recolour, use an icon as a stand-in for a brand, or ship a mark you
    could not verify.
 
 `AppIcon` on white with `pad 0.2` is the default. If the brand runs its mark on a coloured

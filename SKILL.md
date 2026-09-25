@@ -102,7 +102,7 @@ re-deriving the system:
   references/              workflow · devices · design-system · asset-sourcing · premium-ui-sourcing
   starter/                 copy-ready Remotion project (kit, devices, Reel, plan, demo beats, SFX, logos,
                            mascots/ = the Clawd library + sprites, devices/orange-scene.tsx)
-  scripts/                 new_project.py · transcribe.py · plan_beats.py · remotion_sfx.py · fetch_logo.sh · check_build.py · sheet.py · safe_sheet.py · render.sh
+  scripts/                 new_project.py · transcribe.py · plan_beats.py · remotion_sfx.py · fetch_logo.sh · fetch_brand.py · check_build.py · sheet.py · safe_sheet.py · render.sh
   config.local.json        this machine's projects_dir + shared node_modules (gitignored)
   assets/logos             bundled marks (Claude, Anthropic, OpenAI, ChatGPT, GitHub, 21st, Refero, Higgsfield, Clawd)
   assets/sfx               legacy/local fallback cues; use only the non-tonal click/whoosh files
