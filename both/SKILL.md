@@ -27,7 +27,7 @@ python3 $S/both.py "<vo file>" [--slug <topic-yyyymmdd>]
 ```
 
 This transcribes once and writes the transcript into both projects: `src/transcript.json` for
-Remotion and `words.json` for code-motion. It also sets the shared CTA cut in both (Remotion
+Remotion and `words.json` for code-motion. It also sets the shared CTA cut in both — before "Comment", or before the question that leads into it ("Want to use it? Comment…" cuts before "Want") — (Remotion
 `BRIEF.md`, code-motion `plan.json` `end`) and prints both project paths. Run with no argument in a
 terminal and it prompts for the file.
 

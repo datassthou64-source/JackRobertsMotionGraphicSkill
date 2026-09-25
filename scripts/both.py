@@ -83,15 +83,22 @@ def main():
     cmp = Path(re.search(r"project →\s*(.+)", out).group(1).strip())
     shutil.copy(transcript, cmp / "words.json")
 
-    # 4. Shared cut point: end on the last pre-CTA word, ~4 frames of air
-    cta = next((w for w in words if w["text"].lower().strip(".,!?:;'\"") == a.cta.lower()), None)
+    # 4. Shared cut point: end on the last pre-CTA word, ~4 frames of air. A question right
+    #    before "Comment" ("Want to use it?" / "Wanna try it?") is part of the CTA — cut before it.
+    i = next((k for k, w in enumerate(words) if w["text"].lower().strip(".,!?:;'\"") == a.cta.lower()), None)
+    cta = words[i] if i is not None else None
+    if i and words[i - 1]["text"].endswith("?"):
+        i -= 1                                   # last word of the question
+        while i > 0 and not words[i - 1]["text"].endswith((".", "!", "?")):
+            i -= 1                               # back to the question's first word
+        cta = words[i]
     vo_frames = round(words[-1]["end"] * FPS) if words else None
     cut = round(cta["start"] * FPS) - 4 if cta else None
     plan = json.loads((cmp / "plan.json").read_text())
     if cut:
         plan["end"] = cut
         (cmp / "plan.json").write_text(json.dumps(plan, indent=1))
-    note = (f"CTA '{cta['text']}' at {cta['start']:.2f}s → both compositions end at frame {cut} ({cut / FPS:.2f}s)."
+    note = (f"CTA starts '{cta['text']}' at {cta['start']:.2f}s → both compositions end at frame {cut} ({cut / FPS:.2f}s)."
             if cta else f"No '{a.cta}' found — no CTA cut set; end at the VO length ({vo_frames} frames) or find it by hand.")
     brief = rem / "BRIEF.md"
     brief.write_text(brief.read_text().replace("## CTA cut point\n", f"## CTA cut point\n\n{note}\n"))
